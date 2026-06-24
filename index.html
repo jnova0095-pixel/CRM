@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Deal CRM</title>
+<style>
+/* ─── Design tokens ─────────────────────────────────────────────── */
+:root {
+  --bg:           #f7f8fb;
+  --surface:      #ffffff;
+  --surface-2:    #f1f3f8;
+  --border:       #e4e7ef;
+  --text-1:       #111827;
+  --text-2:       #6b7280;
+  --text-3:       #9ca3af;
+  --accent:       #6366f1;
+  --accent-dim:   #eef2ff;
+  --accent-hover: #4f52d6;
+  --green:        #16a34a;
+  --green-dim:    #f0fdf4;
+  --amber:        #d97706;
+  --amber-dim:    #fffbeb;
+  --red:          #dc2626;
+  --red-dim:      #fef2f2;
+  --blue:         #2563eb;
+  --blue-dim:     #eff6ff;
+  --purple:       #7c3aed;
+  --purple-dim:   #f5f3ff;
+  --r:            12px;
+  --r-sm:         8px;
+  --r-xs:         6px;
+  --sh:           0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --sh-md:        0 4px 16px rgba(0,0,0,.08);
+  --sh-lg:        0 16px 48px rgba(0,0,0,.14);
+}
+
+/* ─── Reset ─────────────────────────────────────────────────────── */
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, textarea, select { font-family: inherit; font-size: 14px; }
+a { color: var(--accent); text-decoration: none; }
+
+/* ─── Layout ─────────────────────────────────────────────────────── */
+.app { max-width: 1600px; margin: 0 auto; padding: 0 24px 48px; }
+
+/* ─── Header ─────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 34px; height: 34px; background: var(--accent);
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 16px; font-weight: 700; flex-shrink: 0;
+}
+.header h1 { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
+.header-subtitle { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ─── Month Selector ─────────────────────────────────────────────── */
+.month-nav {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 4px 6px; box-shadow: var(--sh);
+}
+.month-nav button {
+  width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-2); transition: background .15s, color .15s;
+  font-size: 15px;
+}
+.month-nav button:hover { background: var(--surface-2); color: var(--text-1); }
+#month-label {
+  font-size: 13px; font-weight: 600; min-width: 110px;
+  text-align: center; color: var(--text-1);
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 600; transition: .15s;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 1px 3px rgba(99,102,241,.3);
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary {
+  background: var(--surface); color: var(--text-1);
+  border: 1px solid var(--border); box-shadow: var(--sh);
+}
+.btn-secondary:hover { background: var(--surface-2); }
+.btn-ghost { color: var(--text-2); padding: 8px 10px; }
+.btn-ghost:hover { background: var(--surface-2); color: var(--text-1); }
+.btn-danger { background: var(--red-dim); color: var(--red); }
+.btn-danger:hover { background: #fecaca; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ─── Dashboard ───────────────────────────────────────────────────── */
+.dashboard { margin-bottom: 28px; }
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px 20px; box-shadow: var(--sh);
+  position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  right: 0; height: 3px; background: var(--card-accent, var(--border));
+  border-radius: var(--r) var(--r) 0 0;
+}
+.stat-card.accent  { --card-accent: var(--accent); }
+.stat-card.green   { --card-accent: var(--green); }
+.stat-card.amber   { --card-accent: var(--amber); }
+.stat-card.blue    { --card-accent: var(--blue); }
+.stat-card.purple  { --card-accent: var(--purple); }
+.stat-label { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.stat-value { font-size: 28px; font-weight: 700; letter-spacing: -.5px; line-height: 1.1; color: var(--text-1); }
+.stat-value.smaller { font-size: 22px; }
+.stat-sub { font-size: 11px; color: var(--text-2); margin-top: 4px; }
+
+/* Target card */
+.target-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px 20px; box-shadow: var(--sh);
+  position: relative; overflow: hidden; grid-column: span 2;
+}
+.target-card::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  right: 0; height: 3px; background: var(--accent);
+  border-radius: var(--r) var(--r) 0 0;
+}
+.target-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.target-label { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .6px; }
+.target-numbers { font-size: 13px; font-weight: 700; color: var(--text-1); }
+.progress-bar { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
+.target-set-btn { font-size: 11px; color: var(--text-2); text-decoration: underline; cursor: pointer; background: none; border: none; font-family: inherit; }
+.target-set-btn:hover { color: var(--accent); }
+
+/* ─── Section Headers ─────────────────────────────────────────────── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-size: 15px; font-weight: 700; letter-spacing: -.2px;
+  display: flex; align-items: center; gap: 8px;
+}
+.badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 2px 7px; border-radius: 99px; font-size: 11px; font-weight: 700;
+  background: var(--accent-dim); color: var(--accent);
+}
+.badge.amber { background: var(--amber-dim); color: var(--amber); }
+.badge.red   { background: var(--red-dim);   color: var(--red); }
+
+/* ─── Follow-up Section ──────────────────────────────────────────── */
+.followup-section { margin-bottom: 28px; }
+.followup-list { display: flex; flex-direction: column; gap: 6px; }
+.followup-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 12px 16px; box-shadow: var(--sh);
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  transition: box-shadow .15s;
+}
+.followup-item:hover { box-shadow: var(--sh-md); }
+.followup-overdue-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: var(--amber);
+}
+.followup-overdue-dot.critical { background: var(--red); }
+.followup-brand { font-weight: 600; font-size: 13px; flex: 1; }
+.followup-meta { font-size: 12px; color: var(--text-2); }
+.followup-days {
+  font-size: 12px; font-weight: 700; padding: 3px 8px;
+  border-radius: 99px; white-space: nowrap;
+  background: var(--amber-dim); color: var(--amber);
+}
+.followup-days.critical { background: var(--red-dim); color: var(--red); }
+.followup-col { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .5px; }
+.followup-empty { color: var(--text-2); font-size: 13px; padding: 12px 0; }
+
+/* ─── Kanban Board ───────────────────────────────────────────────── */
+.kanban-section { margin-bottom: 28px; }
+.kanban-board {
+  display: flex; gap: 12px;
+  overflow-x: auto; padding-bottom: 12px;
+  /* Scrollbar styling */
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.kanban-board::-webkit-scrollbar { height: 6px; }
+.kanban-board::-webkit-scrollbar-track { background: transparent; }
+.kanban-board::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.kanban-col {
+  flex: 0 0 240px; display: flex; flex-direction: column; gap: 8px;
+  min-height: 200px;
+}
+.kanban-col-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; border-radius: var(--r-sm);
+  background: var(--surface); border: 1px solid var(--border);
+  box-shadow: var(--sh); position: sticky; top: 0; z-index: 1;
+}
+.col-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; display: flex; align-items: center; gap: 6px;
+}
+.col-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+}
+.col-count {
+  font-size: 11px; font-weight: 700; color: var(--text-2);
+  background: var(--surface-2); padding: 1px 6px; border-radius: 99px;
+}
+.kanban-cards { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 80px; }
+.kanban-drop-zone {
+  border: 2px dashed var(--border); border-radius: var(--r-sm);
+  min-height: 60px; transition: border-color .15s, background .15s;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); font-size: 12px;
+}
+.kanban-drop-zone.drag-over { border-color: var(--accent); background: var(--accent-dim); }
+
+/* ─── Deal Cards ─────────────────────────────────────────────────── */
+.deal-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 12px 14px;
+  box-shadow: var(--sh); cursor: grab; user-select: none;
+  transition: box-shadow .15s, transform .1s, border-color .15s;
+  position: relative;
+}
+.deal-card:hover { box-shadow: var(--sh-md); border-color: #d1d5db; }
+.deal-card.dragging {
+  opacity: .55; transform: rotate(1.5deg) scale(.97);
+  box-shadow: var(--sh-lg);
+}
+.deal-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.deal-brand { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.deal-value { font-size: 12px; font-weight: 700; color: var(--green); white-space: nowrap; }
+.deal-value.zero { color: var(--text-3); }
+.deal-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.deal-source {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px;
+  padding: 2px 6px; border-radius: 4px; background: var(--surface-2); color: var(--text-2);
+}
+.deal-last {
+  font-size: 11px; color: var(--text-2);
+  display: flex; align-items: center; gap: 4px;
+}
+.cold-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+.cold-dot.warm  { background: var(--amber); }
+.cold-dot.cold  { background: var(--red); }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+.deal-next-action {
+  margin-top: 6px; font-size: 11px; color: var(--text-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.deal-next-action span { color: var(--accent); font-weight: 600; }
+
+/* ─── Modals ─────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 16px; opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border-radius: var(--r);
+  box-shadow: var(--sh-lg); width: 100%; max-width: 520px;
+  max-height: 90vh; overflow-y: auto; transform: translateY(8px);
+  transition: transform .2s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-lg { max-width: 680px; }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.modal-title { font-size: 16px; font-weight: 700; letter-spacing: -.3px; }
+.modal-close {
+  width: 30px; height: 30px; border-radius: 6px; display: flex;
+  align-items: center; justify-content: center; color: var(--text-2);
+  font-size: 18px; transition: background .15s;
+}
+.modal-close:hover { background: var(--surface-2); color: var(--text-1); }
+.modal-body { padding: 20px 24px; }
+.modal-footer {
+  padding: 14px 24px 20px; display: flex; gap: 8px;
+  justify-content: flex-end; border-top: 1px solid var(--border);
+}
+
+/* ─── Forms ──────────────────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid .full { grid-column: 1 / -1; }
+.form-field { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.form-input {
+  width: 100%; padding: 9px 12px; border: 1.5px solid var(--border);
+  border-radius: var(--r-sm); background: var(--surface);
+  color: var(--text-1); transition: border-color .15s;
+  font-size: 13px;
+}
+.form-input:focus { outline: none; border-color: var(--accent); }
+.form-input.textarea { resize: vertical; min-height: 80px; }
+.form-hint { font-size: 11px; color: var(--text-3); }
+
+/* Bulk add textarea */
+.bulk-textarea {
+  width: 100%; height: 200px; padding: 12px 14px;
+  border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  font-family: 'Menlo', 'Monaco', 'Cascadia Code', monospace;
+  font-size: 12px; line-height: 1.7; resize: vertical;
+  background: var(--surface); color: var(--text-1); transition: border-color .15s;
+}
+.bulk-textarea:focus { outline: none; border-color: var(--accent); }
+.bulk-preview { margin-top: 10px; font-size: 12px; color: var(--text-2); }
+.bulk-preview strong { color: var(--accent); }
+
+/* ─── Lead Detail Panel ──────────────────────────────────────────── */
+.detail-section { margin-bottom: 18px; }
+.detail-section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--text-2); margin-bottom: 10px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.detail-field { display: flex; flex-direction: column; gap: 4px; }
+.detail-label { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .4px; }
+.detail-value { font-size: 13px; color: var(--text-1); }
+.detail-value.muted { color: var(--text-3); font-style: italic; }
+
+/* ─── Column color coding ────────────────────────────────────────── */
+/* Reached Out */
+.col-reached_out .col-dot, .col-reached_out-dot { background: #94a3b8; }
+.col-reached_out .col-title { color: #64748b; }
+/* Replied */
+.col-replied .col-dot, .col-replied-dot { background: var(--blue); }
+.col-replied .col-title { color: var(--blue); }
+/* In Talks */
+.col-in_talks .col-dot { background: var(--purple); }
+.col-in_talks .col-title { color: var(--purple); }
+/* Negotiating */
+.col-negotiating .col-dot { background: var(--amber); }
+.col-negotiating .col-title { color: var(--amber); }
+/* Closed Won */
+.col-closed_won .col-dot { background: var(--green); }
+.col-closed_won .col-title { color: var(--green); }
+/* Closed Lost */
+.col-closed_lost .col-dot { background: var(--red); }
+.col-closed_lost .col-title { color: var(--red); }
+/* Dormant */
+.col-dormant .col-dot { background: var(--text-3); }
+.col-dormant .col-title { color: var(--text-3); }
+
+/* ─── Toast ──────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--text-1); color: #fff; padding: 10px 20px;
+  border-radius: 99px; font-size: 13px; font-weight: 500;
+  box-shadow: var(--sh-lg); z-index: 9999; transition: transform .25s;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ─── Empty State ────────────────────────────────────────────────── */
+.empty-board {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 48px 24px; text-align: center;
+  background: var(--surface); border: 1px dashed var(--border);
+  border-radius: var(--r); margin-top: 8px;
+}
+.empty-board .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: .4; }
+.empty-board h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.empty-board p { font-size: 13px; color: var(--text-2); max-width: 300px; }
+
+/* ─── Divider ────────────────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+/* ─── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .app { padding: 0 14px 40px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .target-card { grid-column: span 2; }
+  .form-grid { grid-template-columns: 1fr; }
+  .modal { max-height: 95vh; }
+  .header h1 { font-size: 15px; }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ─── Header ─────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">B</div>
+      <div>
+        <h1>Brand Deal CRM</h1>
+        <div class="header-subtitle">Personal sales pipeline tracker</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <!-- Month navigator -->
+      <div class="month-nav">
+        <button onclick="changeMonth(-1)" title="Previous month">&#8249;</button>
+        <span id="month-label"></span>
+        <button onclick="changeMonth(1)" title="Next month">&#8250;</button>
+        <button onclick="setCurrentMonth()" title="Go to current month" style="font-size:11px;font-weight:700;padding:0 4px;color:var(--text-2)">Now</button>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="openBulkModal()">&#43; Bulk Add</button>
+      <button class="btn btn-primary btn-sm" onclick="openAddModal()">&#43; Add Lead</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportData()" title="Export JSON">&#8659; Export</button>
+      <label class="btn btn-ghost btn-sm" title="Import JSON" style="cursor:pointer">
+        &#8657; Import
+        <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+      </label>
+    </div>
+  </header>
+
+  <!-- ─── Dashboard ──────────────────────────────────────────── -->
+  <section class="dashboard">
+    <div class="stat-grid">
+      <div class="stat-card accent">
+        <div class="stat-label">Reached Out</div>
+        <div class="stat-value" id="stat-reached">—</div>
+        <div class="stat-sub">this month</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Replied</div>
+        <div class="stat-value" id="stat-replied">—</div>
+        <div class="stat-sub">became conversations</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-label">Deals Closed</div>
+        <div class="stat-value" id="stat-closed">—</div>
+        <div class="stat-sub">won this month</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Conversion</div>
+        <div class="stat-value" id="stat-conversion">—</div>
+        <div class="stat-sub">closed ÷ reached</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Revenue</div>
+        <div class="stat-value smaller" id="stat-revenue">—</div>
+        <div class="stat-sub">EUR closed</div>
+      </div>
+      <!-- Target card spans 2 columns -->
+      <div class="target-card">
+        <div class="target-header">
+          <div class="target-label">Monthly Lead Target</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="target-numbers" id="target-numbers">— / —</div>
+            <button class="target-set-btn" onclick="openTargetModal()">Edit target</button>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="stat-sub" style="margin-top:6px" id="target-sub">Set a monthly outreach target to track your progress</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Follow-up Section ──────────────────────────────────── -->
+  <section class="followup-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        Follow-up Needed
+        <span class="badge amber" id="followup-badge">0</span>
+      </h2>
+      <button class="btn btn-ghost btn-sm" onclick="toggleFollowup()">
+        <span id="followup-toggle-label">Hide</span>
+      </button>
+    </div>
+    <div id="followup-list" class="followup-list"></div>
+  </section>
+
+  <!-- ─── Kanban Board ────────────────────────────────────────── -->
+  <section class="kanban-section">
+    <div class="section-header">
+      <h2 class="section-title">Pipeline</h2>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="font-size:12px;color:var(--text-2);">Filter:</span>
+        <select class="form-input" id="filter-month" style="width:auto;padding:5px 8px;font-size:12px;" onchange="renderKanban()">
+          <option value="all">All leads</option>
+        </select>
+        <select class="form-input" id="filter-source" style="width:auto;padding:5px 8px;font-size:12px;" onchange="renderKanban()">
+          <option value="all">All sources</option>
+          <option>Cold Email</option>
+          <option>Inbound</option>
+          <option>Fiverr</option>
+          <option>Referral</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="kanban-board" id="kanban-board"></div>
+  </section>
+
+</div><!-- /app -->
+
+<!-- ─── Toast ─────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<!-- ─── Modal: Add Single Lead ─────────────────────────────────── -->
+<div class="modal-overlay" id="add-modal" onclick="closeModalOnBg(event,'add-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="add-modal-title">Add Lead</span>
+      <button class="modal-close" onclick="closeModal('add-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field full">
+          <label class="form-label">Brand Name *</label>
+          <input class="form-input" id="f-brand" placeholder="e.g. Brilliant">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Contact Name</label>
+          <input class="form-input" id="f-contact" placeholder="e.g. Jane Smith">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="f-email" type="email" placeholder="jane@brand.com">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Source</label>
+          <select class="form-input" id="f-source">
+            <option>Cold Email</option>
+            <option>Inbound</option>
+            <option>Fiverr</option>
+            <option>Referral</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Deal Value (€)</label>
+          <input class="form-input" id="f-value" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Status</label>
+          <select class="form-input" id="f-status">
+            <option value="reached_out">Reached Out</option>
+            <option value="replied">Replied</option>
+            <option value="in_talks">In Talks</option>
+            <option value="negotiating">Negotiating</option>
+            <option value="closed_won">Closed Won</option>
+            <option value="closed_lost">Closed Lost</option>
+            <option value="dormant">Dormant</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Next Action</label>
+          <input class="form-input" id="f-next" placeholder="e.g. Send rate card on Monday">
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-input textarea" id="f-notes" placeholder="Any relevant context..."></textarea>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Month (YYYY-MM)</label>
+          <input class="form-input" id="f-month" placeholder="2025-06">
+          <span class="form-hint">Defaults to currently selected month</span>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Last Contact Date</label>
+          <input class="form-input" id="f-lastcontact" type="date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddLead()">Add Lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Bulk Add ────────────────────────────────────────── -->
+<div class="modal-overlay" id="bulk-modal" onclick="closeModalOnBg(event,'bulk-modal')">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">Bulk Add Leads</span>
+      <button class="modal-close" onclick="closeModal('bulk-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">
+        Paste one lead per line. Formats supported:<br>
+        <code style="font-size:12px;background:var(--surface-2);padding:2px 6px;border-radius:4px;">Brand Name</code>&nbsp;&nbsp;
+        <code style="font-size:12px;background:var(--surface-2);padding:2px 6px;border-radius:4px;">Brand Name, email@example.com</code>&nbsp;&nbsp;
+        <code style="font-size:12px;background:var(--surface-2);padding:2px 6px;border-radius:4px;">Brand Name, email@example.com, Contact Name</code>
+      </p>
+      <textarea class="bulk-textarea" id="bulk-text" placeholder="Brilliant&#10;NordVPN, john@nordvpn.com&#10;Squarespace, sarah@squarespace.com, Sarah Lee&#10;Skillshare&#10;..." oninput="updateBulkPreview()"></textarea>
+      <div class="bulk-preview" id="bulk-preview"></div>
+      <div class="form-field" style="margin-top:12px;">
+        <label class="form-label">Source for all these leads</label>
+        <select class="form-input" id="bulk-source" style="max-width:200px;">
+          <option>Cold Email</option>
+          <option>Inbound</option>
+          <option>Fiverr</option>
+          <option>Referral</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('bulk-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitBulkAdd()">Add All Leads</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Lead Detail / Edit ─────────────────────────────── -->
+<div class="modal-overlay" id="detail-modal" onclick="closeModalOnBg(event,'detail-modal')">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="detail-brand-name">Lead Detail</div>
+        <div id="detail-col-badge" style="margin-top:4px;"></div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-danger btn-sm" onclick="deleteLead()">Delete</button>
+        <button class="modal-close" onclick="closeModal('detail-modal')">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <!-- Edit form embedded in detail panel -->
+      <div class="form-grid">
+        <div class="form-field full">
+          <label class="form-label">Brand Name *</label>
+          <input class="form-input" id="d-brand">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Contact Name</label>
+          <input class="form-input" id="d-contact">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="d-email" type="email">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Source</label>
+          <select class="form-input" id="d-source">
+            <option>Cold Email</option>
+            <option>Inbound</option>
+            <option>Fiverr</option>
+            <option>Referral</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Deal Value (€)</label>
+          <input class="form-input" id="d-value" type="number" min="0">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Status / Column</label>
+          <select class="form-input" id="d-status">
+            <option value="reached_out">Reached Out</option>
+            <option value="replied">Replied</option>
+            <option value="in_talks">In Talks</option>
+            <option value="negotiating">Negotiating</option>
+            <option value="closed_won">Closed Won</option>
+            <option value="closed_lost">Closed Lost</option>
+            <option value="dormant">Dormant</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Next Action</label>
+          <input class="form-input" id="d-next">
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-input textarea" id="d-notes"></textarea>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Last Contact Date</label>
+          <input class="form-input" id="d-lastcontact" type="date">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Month (YYYY-MM)</label>
+          <input class="form-input" id="d-month">
+        </div>
+      </div>
+      <div class="divider" style="margin:14px 0;"></div>
+      <div class="detail-section">
+        <div class="detail-section-title">Timeline</div>
+        <div class="detail-grid">
+          <div class="detail-field">
+            <span class="detail-label">Date Created</span>
+            <span class="detail-value" id="d-created">—</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Last Updated</span>
+            <span class="detail-value" id="d-updated">—</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Closed Date</span>
+            <span class="detail-value" id="d-closeddate">—</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Days Since Contact</span>
+            <span class="detail-value" id="d-dayslast">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('detail-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLeadDetail()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Set Target ──────────────────────────────────────── -->
+<div class="modal-overlay" id="target-modal" onclick="closeModalOnBg(event,'target-modal')">
+  <div class="modal" style="max-width:340px;">
+    <div class="modal-header">
+      <span class="modal-title">Monthly Lead Target</span>
+      <button class="modal-close" onclick="closeModal('target-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">Target outreaches for <span id="target-month-label">this month</span></label>
+        <input class="form-input" id="target-input" type="number" min="1" max="9999" placeholder="50">
+      </div>
+      <p class="form-hint" style="margin-top:8px;">This target is per-month. Each month can have a different target.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('target-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTarget()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+//  DATA MODEL
+//  Lead: { id, brandName, contactName, email, source, dealValue,
+//          status, nextAction, notes, dateCreated, dateLastContact,
+//          monthCreated, monthClosed, closedDate }
+//  Settings: { targets: { 'YYYY-MM': number }, followupHidden: bool }
+// ─────────────────────────────────────────────────────────────────
+
+const COLUMNS = [
+  { id: 'reached_out', label: 'Reached Out'  },
+  { id: 'replied',     label: 'Replied'      },
+  { id: 'in_talks',    label: 'In Talks'     },
+  { id: 'negotiating', label: 'Negotiating'  },
+  { id: 'closed_won',  label: 'Closed Won'   },
+  { id: 'closed_lost', label: 'Closed Lost'  },
+  { id: 'dormant',     label: 'Dormant'      },
+];
+
+const ACTIVE_STATUSES = ['reached_out','replied','in_talks','negotiating'];
+const FOLLOW_UP_THRESHOLD = 7; // days
+
+let state = {
+  leads: [],
+  settings: { targets: {}, followupHidden: false },
+};
+let selectedMonth = getCurrentYM();
+let editingLeadId = null;
+let draggedId = null;
+
+// ─── Persistence ──────────────────────────────────────────────────
+function save() {
+  try { localStorage.setItem('crm_v1', JSON.stringify(state)); } catch(e) {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem('crm_v1');
+    if (raw) state = JSON.parse(raw);
+    // Ensure settings structure exists
+    if (!state.settings) state.settings = {};
+    if (!state.settings.targets) state.settings.targets = {};
+    if (!state.leads) state.leads = [];
+  } catch(e) {}
+}
+
+// ─── Date Helpers ─────────────────────────────────────────────────
+function getCurrentYM() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function formatYM(ym) {
+  if (!ym) return '';
+  const [y, m] = ym.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(m,10)-1]} ${y}`;
+}
+function daysBetween(a, b) {
+  const ms = Math.abs(new Date(b) - new Date(a));
+  return Math.floor(ms / 86400000);
+}
+function daysSince(dateStr) {
+  return daysBetween(dateStr, todayISO());
+}
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+}
+
+// ─── Month Navigation ─────────────────────────────────────────────
+function changeMonth(delta) {
+  const [y, m] = selectedMonth.split('-').map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  selectedMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  updateMonthLabel();
+  renderDashboard();
+  updateFilterMonthSelect();
+}
+function setCurrentMonth() {
+  selectedMonth = getCurrentYM();
+  updateMonthLabel();
+  renderDashboard();
+}
+function updateMonthLabel() {
+  document.getElementById('month-label').textContent = formatYM(selectedMonth);
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────
+function getMonthStats(ym) {
+  // Reached out: leads whose monthCreated === ym
+  const reached = state.leads.filter(l => l.monthCreated === ym);
+  // Replied: reached leads that progressed past reached_out
+  const replied = reached.filter(l => ['replied','in_talks','negotiating','closed_won','closed_lost'].includes(l.status));
+  // Closed Won this month
+  const closed = state.leads.filter(l => l.monthClosed === ym && l.status === 'closed_won');
+  // Revenue from closed
+  const revenue = closed.reduce((sum, l) => sum + (parseFloat(l.dealValue)||0), 0);
+  // Conversion
+  const conversion = reached.length > 0 ? (closed.length / reached.length * 100).toFixed(1) : null;
+  return { reached: reached.length, replied: replied.length, closed: closed.length, revenue, conversion };
+}
+
+function renderDashboard() {
+  const s = getMonthStats(selectedMonth);
+  document.getElementById('stat-reached').textContent  = s.reached;
+  document.getElementById('stat-replied').textContent  = s.replied;
+  document.getElementById('stat-closed').textContent   = s.closed;
+  document.getElementById('stat-conversion').textContent = s.conversion !== null ? s.conversion + '%' : '—';
+  document.getElementById('stat-revenue').textContent  = s.revenue > 0 ? '€' + s.revenue.toLocaleString('de-DE') : '€0';
+
+  // Target
+  const target = state.settings.targets[selectedMonth] || 0;
+  const reached = s.reached;
+  if (target > 0) {
+    const pct = Math.min(100, Math.round(reached / target * 100));
+    document.getElementById('target-numbers').textContent = `${reached} / ${target}`;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    const left = target - reached;
+    document.getElementById('target-sub').textContent =
+      left > 0 ? `${left} more outreach${left===1?'':'es'} to hit your target (${pct}% there)` : '🎉 Target hit!';
+  } else {
+    document.getElementById('target-numbers').textContent = `${reached} / —`;
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('target-sub').textContent = 'Set a monthly outreach target to track your progress';
+  }
+}
+
+// ─── Follow-up Section ────────────────────────────────────────────
+function renderFollowUp() {
+  const overdue = state.leads
+    .filter(l => ACTIVE_STATUSES.includes(l.status))
+    .map(l => ({ ...l, days: daysSince(l.dateLastContact) }))
+    .filter(l => l.days >= FOLLOW_UP_THRESHOLD)
+    .sort((a,b) => b.days - a.days);
+
+  const badge = document.getElementById('followup-badge');
+  badge.textContent = overdue.length;
+  badge.className = 'badge' + (overdue.length > 0 ? ' amber' : '');
+
+  const list = document.getElementById('followup-list');
+  if (state.settings.followupHidden) { list.style.display = 'none'; return; }
+  list.style.display = 'flex';
+
+  if (overdue.length === 0) {
+    list.innerHTML = '<div class="followup-empty">All caught up! No leads need following up right now.</div>';
+    return;
+  }
+
+  list.innerHTML = overdue.map(l => {
+    const critical = l.days >= 14;
+    const col = COLUMNS.find(c => c.id === l.status);
+    return `<div class="followup-item" onclick="openDetailModal('${l.id}')">
+      <div class="followup-overdue-dot${critical?' critical':''}"></div>
+      <div class="followup-brand">${esc(l.brandName)}</div>
+      <div class="followup-col">${col ? col.label : ''}</div>
+      <div class="followup-meta">${l.contactName ? esc(l.contactName) : ''}</div>
+      <div class="followup-days${critical?' critical':''}">${l.days}d ago</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleFollowup() {
+  state.settings.followupHidden = !state.settings.followupHidden;
+  save();
+  document.getElementById('followup-toggle-label').textContent =
+    state.settings.followupHidden ? 'Show' : 'Hide';
+  renderFollowUp();
+}
+
+// ─── Kanban ───────────────────────────────────────────────────────
+function renderKanban() {
+  const board = document.getElementById('kanban-board');
+  const filterMonth  = document.getElementById('filter-month').value;
+  const filterSource = document.getElementById('filter-source').value;
+
+  let leads = state.leads;
+  if (filterMonth  !== 'all') leads = leads.filter(l => l.monthCreated === filterMonth);
+  if (filterSource !== 'all') leads = leads.filter(l => l.source === filterSource);
+
+  board.innerHTML = COLUMNS.map(col => {
+    const cards = leads.filter(l => l.status === col.id);
+    return `<div class="kanban-col col-${col.id}" id="col-${col.id}"
+      ondragover="onDragOver(event,'${col.id}')"
+      ondragleave="onDragLeave(event,'${col.id}')"
+      ondrop="onDrop(event,'${col.id}')">
+      <div class="kanban-col-header">
+        <span class="col-title">
+          <span class="col-dot"></span>${col.label}
+        </span>
+        <span class="col-count">${cards.length}</span>
+      </div>
+      <div class="kanban-cards" id="cards-${col.id}">
+        ${cards.map(renderCard).join('')}
+        ${cards.length === 0
+          ? `<div class="kanban-drop-zone" id="dz-${col.id}">Drop here</div>`
+          : `<div class="kanban-drop-zone" id="dz-${col.id}" style="display:none"></div>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Bind drag events after render
+  document.querySelectorAll('.deal-card').forEach(el => {
+    el.addEventListener('dragstart', onDragStart);
+    el.addEventListener('dragend', onDragEnd);
+  });
+}
+
+function renderCard(l) {
+  const days = daysSince(l.dateLastContact);
+  const isCold = ACTIVE_STATUSES.includes(l.status) && days >= FOLLOW_UP_THRESHOLD;
+  const isCritical = isCold && days >= 14;
+  const colDot = isCold
+    ? `<span class="cold-dot ${isCritical?'cold':'warm'}" title="${days} days since contact"></span>`
+    : '';
+  const valueStr = l.dealValue > 0 ? `€${Number(l.dealValue).toLocaleString('de-DE')}` : '—';
+  const nextStr = l.nextAction
+    ? `<div class="deal-next-action"><span>→</span> ${esc(l.nextAction)}</div>` : '';
+  return `<div class="deal-card" id="card-${l.id}" draggable="true"
+    onclick="openDetailModal('${l.id}')"
+    data-id="${l.id}">
+    <div class="deal-card-top">
+      <div class="deal-brand">${esc(l.brandName)}</div>
+      <div class="deal-value${!l.dealValue?' zero':''}">${valueStr}</div>
+    </div>
+    <div class="deal-meta">
+      <span class="deal-source">${esc(l.source||'')}</span>
+      ${colDot}
+      <span class="deal-last">${days}d ago</span>
+    </div>
+    ${nextStr}
+  </div>`;
+}
+
+// ─── Drag & Drop ─────────────────────────────────────────────────
+function onDragStart(e) {
+  draggedId = e.currentTarget.dataset.id;
+  setTimeout(() => e.currentTarget.classList.add('dragging'), 0);
+  e.dataTransfer.effectAllowed = 'move';
+  // Show all drop zones
+  document.querySelectorAll('.kanban-drop-zone').forEach(dz => dz.style.display = 'flex');
+}
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  draggedId = null;
+  // Re-render to clean up
+  renderKanban();
+}
+function onDragOver(e, colId) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const dz = document.getElementById('dz-' + colId);
+  if (dz) dz.classList.add('drag-over');
+}
+function onDragLeave(e, colId) {
+  const dz = document.getElementById('dz-' + colId);
+  if (dz) dz.classList.remove('drag-over');
+}
+function onDrop(e, colId) {
+  e.preventDefault();
+  if (!draggedId) return;
+  const lead = state.leads.find(l => l.id === draggedId);
+  if (!lead) return;
+  const prevStatus = lead.status;
+  lead.status = colId;
+  lead.dateLastContact = todayISO();
+  // If moving into Closed Won, set monthClosed and closedDate
+  if (colId === 'closed_won' && prevStatus !== 'closed_won') {
+    lead.monthClosed = getCurrentYM();
+    lead.closedDate  = todayISO();
+  }
+  // If moved OUT of Closed Won, clear monthClosed
+  if (prevStatus === 'closed_won' && colId !== 'closed_won') {
+    lead.monthClosed = null;
+    lead.closedDate  = null;
+  }
+  save();
+  renderAll();
+  showToast(`${lead.brandName} → ${COLUMNS.find(c=>c.id===colId).label}`);
+}
+
+// ─── Modal: Add Single Lead ───────────────────────────────────────
+function openAddModal() {
+  editingLeadId = null;
+  document.getElementById('add-modal-title').textContent = 'Add Lead';
+  document.getElementById('f-brand').value       = '';
+  document.getElementById('f-contact').value     = '';
+  document.getElementById('f-email').value       = '';
+  document.getElementById('f-source').value      = 'Cold Email';
+  document.getElementById('f-value').value       = '';
+  document.getElementById('f-status').value      = 'reached_out';
+  document.getElementById('f-next').value        = '';
+  document.getElementById('f-notes').value       = '';
+  document.getElementById('f-month').value       = selectedMonth;
+  document.getElementById('f-lastcontact').value = todayISO();
+  openModal('add-modal');
+  setTimeout(() => document.getElementById('f-brand').focus(), 100);
+}
+
+function submitAddLead() {
+  const brand = document.getElementById('f-brand').value.trim();
+  if (!brand) { showToast('Brand name is required'); return; }
+
+  const status = document.getElementById('f-status').value;
+  const month  = document.getElementById('f-month').value.trim() || selectedMonth;
+
+  const lead = {
+    id:              uid(),
+    brandName:       brand,
+    contactName:     document.getElementById('f-contact').value.trim(),
+    email:           document.getElementById('f-email').value.trim(),
+    source:          document.getElementById('f-source').value,
+    dealValue:       parseFloat(document.getElementById('f-value').value) || 0,
+    status,
+    nextAction:      document.getElementById('f-next').value.trim(),
+    notes:           document.getElementById('f-notes').value.trim(),
+    dateCreated:     todayISO(),
+    dateLastContact: document.getElementById('f-lastcontact').value || todayISO(),
+    monthCreated:    month,
+    monthClosed:     status === 'closed_won' ? getCurrentYM() : null,
+    closedDate:      status === 'closed_won' ? todayISO() : null,
+  };
+  state.leads.unshift(lead);
+  save();
+  closeModal('add-modal');
+  renderAll();
+  showToast(`Added ${brand}`);
+}
+
+// ─── Modal: Bulk Add ──────────────────────────────────────────────
+function openBulkModal() {
+  document.getElementById('bulk-text').value = '';
+  document.getElementById('bulk-preview').innerHTML = '';
+  openModal('bulk-modal');
+  setTimeout(() => document.getElementById('bulk-text').focus(), 100);
+}
+
+function parseBulkLines(text) {
+  return text.split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const parts = line.split(',').map(p => p.trim());
+      return {
+        brandName:   parts[0] || '',
+        email:       parts[1] || '',
+        contactName: parts[2] || '',
+      };
+    })
+    .filter(l => l.brandName);
+}
+
+function updateBulkPreview() {
+  const lines = parseBulkLines(document.getElementById('bulk-text').value);
+  const p = document.getElementById('bulk-preview');
+  if (lines.length === 0) { p.innerHTML = ''; return; }
+  p.innerHTML = `Ready to add <strong>${lines.length}</strong> lead${lines.length===1?'':'s'} to <strong>Reached Out</strong> for ${formatYM(selectedMonth)}.`;
+}
+
+function submitBulkAdd() {
+  const lines = parseBulkLines(document.getElementById('bulk-text').value);
+  if (lines.length === 0) { showToast('Nothing to add — paste at least one brand name'); return; }
+  const source = document.getElementById('bulk-source').value;
+  const today  = todayISO();
+  lines.forEach(l => {
+    state.leads.unshift({
+      id:              uid(),
+      brandName:       l.brandName,
+      contactName:     l.contactName,
+      email:           l.email,
+      source,
+      dealValue:       0,
+      status:          'reached_out',
+      nextAction:      '',
+      notes:           '',
+      dateCreated:     today,
+      dateLastContact: today,
+      monthCreated:    selectedMonth,
+      monthClosed:     null,
+      closedDate:      null,
+    });
+  });
+  save();
+  closeModal('bulk-modal');
+  renderAll();
+  showToast(`Added ${lines.length} lead${lines.length===1?'':'s'}`);
+}
+
+// ─── Modal: Lead Detail / Edit ────────────────────────────────────
+function openDetailModal(id) {
+  const l = state.leads.find(l => l.id === id);
+  if (!l) return;
+  editingLeadId = id;
+
+  document.getElementById('detail-brand-name').textContent = l.brandName;
+  document.getElementById('detail-col-badge').innerHTML =
+    `<span style="font-size:11px;font-weight:600;color:var(--text-2);">${COLUMNS.find(c=>c.id===l.status)?.label||l.status}</span>`;
+
+  document.getElementById('d-brand').value       = l.brandName;
+  document.getElementById('d-contact').value     = l.contactName||'';
+  document.getElementById('d-email').value       = l.email||'';
+  document.getElementById('d-source').value      = l.source||'Cold Email';
+  document.getElementById('d-value').value       = l.dealValue||'';
+  document.getElementById('d-status').value      = l.status;
+  document.getElementById('d-next').value        = l.nextAction||'';
+  document.getElementById('d-notes').value       = l.notes||'';
+  document.getElementById('d-lastcontact').value = l.dateLastContact||'';
+  document.getElementById('d-month').value       = l.monthCreated||'';
+
+  document.getElementById('d-created').textContent   = formatDate(l.dateCreated);
+  document.getElementById('d-updated').textContent   = formatDate(l.dateLastContact);
+  document.getElementById('d-closeddate').textContent = l.closedDate ? formatDate(l.closedDate) : '—';
+  document.getElementById('d-dayslast').textContent  = daysSince(l.dateLastContact) + ' days';
+
+  openModal('detail-modal');
+}
+
+function saveLeadDetail() {
+  const l = state.leads.find(l => l.id === editingLeadId);
+  if (!l) return;
+  const brand = document.getElementById('d-brand').value.trim();
+  if (!brand) { showToast('Brand name is required'); return; }
+
+  const prevStatus = l.status;
+  const newStatus  = document.getElementById('d-status').value;
+
+  l.brandName       = brand;
+  l.contactName     = document.getElementById('d-contact').value.trim();
+  l.email           = document.getElementById('d-email').value.trim();
+  l.source          = document.getElementById('d-source').value;
+  l.dealValue       = parseFloat(document.getElementById('d-value').value) || 0;
+  l.status          = newStatus;
+  l.nextAction      = document.getElementById('d-next').value.trim();
+  l.notes           = document.getElementById('d-notes').value.trim();
+  l.dateLastContact = document.getElementById('d-lastcontact').value || todayISO();
+  l.monthCreated    = document.getElementById('d-month').value.trim() || l.monthCreated;
+
+  // Handle Closed Won transitions
+  if (newStatus === 'closed_won' && prevStatus !== 'closed_won') {
+    l.monthClosed = getCurrentYM();
+    l.closedDate  = todayISO();
+  } else if (newStatus !== 'closed_won' && prevStatus === 'closed_won') {
+    l.monthClosed = null;
+    l.closedDate  = null;
+  }
+
+  save();
+  closeModal('detail-modal');
+  renderAll();
+  showToast('Lead updated');
+}
+
+function deleteLead() {
+  const l = state.leads.find(l => l.id === editingLeadId);
+  if (!l) return;
+  if (!confirm(`Delete "${l.brandName}"? This cannot be undone.`)) return;
+  state.leads = state.leads.filter(l => l.id !== editingLeadId);
+  save();
+  closeModal('detail-modal');
+  renderAll();
+  showToast('Lead deleted');
+}
+
+// ─── Target Modal ─────────────────────────────────────────────────
+function openTargetModal() {
+  document.getElementById('target-month-label').textContent = formatYM(selectedMonth);
+  document.getElementById('target-input').value = state.settings.targets[selectedMonth] || '';
+  openModal('target-modal');
+  setTimeout(() => document.getElementById('target-input').focus(), 100);
+}
+function saveTarget() {
+  const val = parseInt(document.getElementById('target-input').value, 10);
+  if (val > 0) state.settings.targets[selectedMonth] = val;
+  else delete state.settings.targets[selectedMonth];
+  save();
+  closeModal('target-modal');
+  renderDashboard();
+  showToast('Target saved');
+}
+
+// ─── Filter Month Dropdown ────────────────────────────────────────
+function updateFilterMonthSelect() {
+  const sel = document.getElementById('filter-month');
+  const months = [...new Set(state.leads.map(l => l.monthCreated).filter(Boolean))].sort().reverse();
+  const cur = sel.value;
+  sel.innerHTML = '<option value="all">All leads</option>' +
+    months.map(m => `<option value="${m}"${m===cur?' selected':''}>${formatYM(m)}</option>`).join('');
+}
+
+// ─── Export / Import ──────────────────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `crm-export-${todayISO()}.json`;
+  a.click();
+  showToast('Exported');
+}
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!imported.leads) throw new Error('Invalid format');
+      if (!confirm(`Import ${imported.leads.length} leads? This will REPLACE your current data.`)) return;
+      state = imported;
+      if (!state.settings) state.settings = {};
+      if (!state.settings.targets) state.settings.targets = {};
+      save();
+      renderAll();
+      showToast(`Imported ${state.leads.length} leads`);
+    } catch(err) {
+      showToast('Import failed: invalid file');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // reset
+}
+
+// ─── Modal Helpers ────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOnBg(e, id) { if (e.target.id === id) closeModal(id); }
+// Close modals with Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(el => el.classList.remove('open'));
+  }
+});
+
+// ─── Toast ────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── Escape HTML ──────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Render All ───────────────────────────────────────────────────
+function renderAll() {
+  renderDashboard();
+  renderFollowUp();
+  renderKanban();
+  updateFilterMonthSelect();
+  document.getElementById('followup-toggle-label').textContent =
+    state.settings.followupHidden ? 'Show' : 'Hide';
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────
+load();
+updateMonthLabel();
+renderAll();
+
+// Add sample data if empty so the UI doesn't look blank on first visit
+if (state.leads.length === 0) {
+  const ym = getCurrentYM();
+  const samples = [
+    { brand:'Brilliant',     contact:'James T.',    email:'james@brilliant.org',    source:'Cold Email',  value:2500, status:'negotiating',  next:'Send revised rate card' },
+    { brand:'NordVPN',       contact:'Sara K.',     email:'sara@nordvpn.com',       source:'Inbound',     value:3800, status:'in_talks',      next:'Schedule call Thursday' },
+    { brand:'Squarespace',   contact:'',            email:'brands@squarespace.com', source:'Cold Email',  value:0,    status:'replied',       next:'Follow up — no reply in 5d' },
+    { brand:'Skillshare',    contact:'Mia L.',      email:'mia@skillshare.com',     source:'Referral',    value:1200, status:'closed_won',    next:'' },
+    { brand:'Ridge Wallet',  contact:'',            email:'',                       source:'Cold Email',  value:0,    status:'reached_out',   next:'' },
+    { brand:'Morning Brew',  contact:'',            email:'',                       source:'Cold Email',  value:0,    status:'reached_out',   next:'' },
+    { brand:'Surfshark',     contact:'',            email:'',                       source:'Cold Email',  value:1800, status:'closed_lost',   next:'' },
+    { brand:'Notion',        contact:'Dana P.',     email:'dana@notion.so',         source:'Inbound',     value:2200, status:'dormant',       next:'' },
+  ];
+  const today = todayISO();
+  samples.forEach((s, i) => {
+    const lastContact = new Date();
+    lastContact.setDate(lastContact.getDate() - [2,5,9,1,3,15,20,45][i]);
+    const lc = lastContact.toISOString().slice(0,10);
+    state.leads.push({
+      id:              uid(),
+      brandName:       s.brand,
+      contactName:     s.contact,
+      email:           s.email,
+      source:          s.source,
+      dealValue:       s.value,
+      status:          s.status,
+      nextAction:      s.next,
+      notes:           '',
+      dateCreated:     today,
+      dateLastContact: lc,
+      monthCreated:    ym,
+      monthClosed:     s.status === 'closed_won' ? ym : null,
+      closedDate:      s.status === 'closed_won' ? today : null,
+    });
+  });
+  state.settings.targets[ym] = 50;
+  save();
+  renderAll();
+}
+</script>
+</body>
+</html>
