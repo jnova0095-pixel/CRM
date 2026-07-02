@@ -445,6 +445,7 @@ a { color: var(--accent); text-decoration: none; }
       </div>
       <button class="btn btn-secondary btn-sm" onclick="openBulkModal()">&#43; Bulk Add</button>
       <button class="btn btn-primary btn-sm" onclick="openAddModal()">&#43; Add Lead</button>
+      <span id="saved-indicator" style="font-size:12px;font-weight:600;color:var(--green);opacity:0;transition:opacity .4s;white-space:nowrap;">✓ Saved</span>
       <button class="btn btn-ghost btn-sm" onclick="exportData()" title="Export JSON">&#8659; Export</button>
       <label class="btn btn-ghost btn-sm" title="Import JSON" style="cursor:pointer">
         &#8657; Import
@@ -535,6 +536,15 @@ a { color: var(--accent); text-decoration: none; }
   </section>
 
 </div><!-- /app -->
+
+<!-- ─── Storage warning banner ────────────────────────────────── -->
+<div id="storage-warning" style="display:none;background:#fef3c7;border-bottom:1px solid #fde68a;padding:10px 24px;font-size:13px;color:#92400e;text-align:center;">
+  ⚠️ <strong>Private/Incognito mode detected.</strong> Your data will be lost when you close this window.
+  Use the <strong>Export</strong> button to save a backup file.
+</div>
+
+<!-- ─── Last saved footer ──────────────────────────────────────── -->
+<div id="footer-saved" style="text-align:center;padding:12px;font-size:11px;color:var(--text-3);"></div>
 
 <!-- ─── Toast ─────────────────────────────────────────────────── -->
 <div id="toast"></div>
@@ -800,17 +810,46 @@ let draggedId = null;
 
 // ─── Persistence ──────────────────────────────────────────────────
 function save() {
-  try { localStorage.setItem('crm_v1', JSON.stringify(state)); } catch(e) {}
+  try {
+    const json = JSON.stringify(state);
+    localStorage.setItem('crm_v1', json);
+    // Write a redundant backup key so one corruption can't wipe everything
+    localStorage.setItem('crm_v1_backup', json);
+    localStorage.setItem('crm_v1_savedAt', new Date().toISOString());
+    showSavedIndicator();
+  } catch(e) {
+    showToast('⚠️ Could not save — storage may be full');
+  }
 }
 function load() {
   try {
-    const raw = localStorage.getItem('crm_v1');
+    let raw = localStorage.getItem('crm_v1');
+    // Fall back to backup if main key is missing or corrupt
+    if (!raw) raw = localStorage.getItem('crm_v1_backup');
     if (raw) state = JSON.parse(raw);
-    // Ensure settings structure exists
     if (!state.settings) state.settings = {};
     if (!state.settings.targets) state.settings.targets = {};
     if (!state.leads) state.leads = [];
-  } catch(e) {}
+  } catch(e) {
+    // Try backup on parse error
+    try {
+      const backup = localStorage.getItem('crm_v1_backup');
+      if (backup) state = JSON.parse(backup);
+    } catch(e2) {}
+  }
+}
+
+// Saved indicator — small green "Saved" text in the header
+let savedTimer;
+function showSavedIndicator() {
+  const el = document.getElementById('saved-indicator');
+  if (!el) return;
+  el.style.opacity = '1';
+  clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => { el.style.opacity = '0'; }, 2000);
+  // Also update last-saved tooltip
+  const savedAt = localStorage.getItem('crm_v1_savedAt');
+  if (savedAt && el) el.title = 'Last saved: ' + new Date(savedAt).toLocaleTimeString();
 }
 
 // ─── Date Helpers ─────────────────────────────────────────────────
@@ -1332,6 +1371,39 @@ function renderAll() {
 load();
 updateMonthLabel();
 renderAll();
+
+// Show last-saved time in footer
+(function updateFooter() {
+  const savedAt = localStorage.getItem('crm_v1_savedAt');
+  const el = document.getElementById('footer-saved');
+  if (el) {
+    if (savedAt) {
+      el.textContent = 'Data saved in this browser · Last saved: ' + new Date(savedAt).toLocaleString();
+    } else {
+      el.textContent = 'No saved data found · Use Export to back up your data';
+    }
+  }
+})();
+
+// Detect incognito / private browsing (storage is wiped on close)
+(function checkPrivate() {
+  try {
+    const test = '__storage_test__';
+    localStorage.setItem(test, '1');
+    localStorage.removeItem(test);
+    // Also check if storage quota is suspiciously tiny (Firefox private mode)
+    if (navigator.storage && navigator.storage.estimate) {
+      navigator.storage.estimate().then(({ quota }) => {
+        if (quota && quota < 120 * 1024 * 1024) {
+          document.getElementById('storage-warning').style.display = 'block';
+        }
+      });
+    }
+  } catch(e) {
+    // localStorage blocked = private mode
+    document.getElementById('storage-warning').style.display = 'block';
+  }
+})();
 
 // Add sample data if empty so the UI doesn't look blank on first visit
 if (state.leads.length === 0) {
