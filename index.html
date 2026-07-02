@@ -727,6 +727,11 @@ a { color: var(--accent); text-decoration: none; }
           <label class="form-label">Month (YYYY-MM)</label>
           <input class="form-input" id="d-month">
         </div>
+        <div class="form-field" id="d-monthclosed-field" style="display:none">
+          <label class="form-label">Revenue Month (YYYY-MM)</label>
+          <input class="form-input" id="d-monthclosed">
+          <span class="form-hint">Which month this closed revenue counts toward</span>
+        </div>
       </div>
       <div class="divider" style="margin:14px 0;"></div>
       <div class="detail-section">
@@ -1077,9 +1082,9 @@ function onDrop(e, colId) {
   const prevStatus = lead.status;
   lead.status = colId;
   lead.dateLastContact = todayISO();
-  // If moving into Closed Won, set monthClosed and closedDate
+  // If moving into Closed Won, attribute revenue to the selected month
   if (colId === 'closed_won' && prevStatus !== 'closed_won') {
-    lead.monthClosed = getCurrentYM();
+    lead.monthClosed = selectedMonth;
     lead.closedDate  = todayISO();
   }
   // If moved OUT of Closed Won, clear monthClosed
@@ -1219,6 +1224,8 @@ function openDetailModal(id) {
   document.getElementById('d-notes').value       = l.notes||'';
   document.getElementById('d-lastcontact').value = l.dateLastContact||'';
   document.getElementById('d-month').value       = l.monthCreated||'';
+  document.getElementById('d-monthclosed').value = l.monthClosed||'';
+  document.getElementById('d-monthclosed-field').style.display = l.status === 'closed_won' ? '' : 'none';
 
   document.getElementById('d-created').textContent   = formatDate(l.dateCreated);
   document.getElementById('d-updated').textContent   = formatDate(l.dateLastContact);
@@ -1248,11 +1255,14 @@ function saveLeadDetail() {
   l.dateLastContact = document.getElementById('d-lastcontact').value || todayISO();
   l.monthCreated    = document.getElementById('d-month').value.trim() || l.monthCreated;
 
-  // Handle Closed Won transitions
+  // Handle Closed Won transitions — attribute to selected month
   if (newStatus === 'closed_won' && prevStatus !== 'closed_won') {
-    l.monthClosed = getCurrentYM();
+    l.monthClosed = document.getElementById('d-monthclosed').value.trim() || selectedMonth;
     l.closedDate  = todayISO();
-  } else if (newStatus !== 'closed_won' && prevStatus === 'closed_won') {
+  } else if (newStatus === 'closed_won') {
+    // Already closed — allow manual override of revenue month
+    l.monthClosed = document.getElementById('d-monthclosed').value.trim() || l.monthClosed;
+  } else if (prevStatus === 'closed_won') {
     l.monthClosed = null;
     l.closedDate  = null;
   }
