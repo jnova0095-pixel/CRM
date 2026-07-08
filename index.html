@@ -997,7 +997,9 @@ function renderKanban() {
   if (filterSource !== 'all') leads = leads.filter(l => l.source === filterSource);
 
   board.innerHTML = COLUMNS.map(col => {
-    const cards = leads.filter(l => l.status === col.id);
+    // Closed Won: only show deals closed in the selected month
+    const cards = leads.filter(l => l.status === col.id &&
+      (col.id !== 'closed_won' || l.monthClosed === selectedMonth));
     return `<div class="kanban-col col-${col.id}" id="col-${col.id}"
       ondragover="onDragOver(event,'${col.id}')"
       ondragleave="onDragLeave(event,'${col.id}')"
